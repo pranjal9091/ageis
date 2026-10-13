@@ -1,0 +1,71 @@
+[
+  {
+    "id": "pol-fin-001",
+    "name": "Treasury \u0026 Ledger Protection",
+    "pathPrefix": "/api/v1/billing",
+    "methods": [
+      "*"
+    ],
+    "requiredRoles": [
+      "finance_lead",
+      "super_admin"
+    ],
+    "minDeviceTrust": 80,
+    "rateLimitRps": 15,
+    "enforceMfa": true,
+    "enabled": true,
+    "description": "Zero-Trust isolation for banking ledgers and financial transfers."
+  },
+  {
+    "id": "pol-id-002",
+    "name": "Core Identity Directory",
+    "pathPrefix": "/api/v1/identity",
+    "methods": [
+      "*"
+    ],
+    "requiredRoles": [
+      "it_admin",
+      "super_admin",
+      "devops"
+    ],
+    "minDeviceTrust": 65,
+    "rateLimitRps": 25,
+    "enforceMfa": false,
+    "enabled": true,
+    "description": "Identity directory and employee credential vault."
+  },
+  {
+    "id": "pol-ops-003",
+    "name": "Cloud Compute Workloads",
+    "pathPrefix": "/api/v1/workloads",
+    "methods": [
+      "*"
+    ],
+    "requiredRoles": [
+      "devops",
+      "cloud_engineer",
+      "super_admin"
+    ],
+    "minDeviceTrust": 70,
+    "rateLimitRps": 30,
+    "enforceMfa": false,
+    "enabled": true,
+    "description": "Kubernetes workload orchestrator and edge node telemetry."
+  },
+  {
+    "id": "pol-pub-004",
+    "name": "Public Ingress Gateway",
+    "pathPrefix": "/api/v1/public",
+    "methods": [
+      "GET"
+    ],
+    "requiredRoles": [
+      "*"
+    ],
+    "minDeviceTrust": 0,
+    "rateLimitRps": 50,
+    "enforceMfa": false,
+    "enabled": true,
+    "description": "External unauthenticated catalog and system health probes."
+  }
+]
