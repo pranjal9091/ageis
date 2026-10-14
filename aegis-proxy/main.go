@@ -34,14 +34,28 @@ func main() {
 	security.InitRateLimiter()
 	security.InitWAF()
 
-	// 4. Initialize Proxy Engine targeting live upstream (defaults to public echo https://httpbin.org)
-	proxyEngine, err := proxy.NewProxyEngine("https://httpbin.org")
+	// 4. Initialize Proxy Engine targeting live upstream (configurable via DEFAULT_UPSTREAM env)
+	defaultUpstream := os.Getenv("DEFAULT_UPSTREAM")
+	if defaultUpstream == "" {
+		defaultUpstream = "https://httpbin.org"
+	}
+	proxyEngine, err := proxy.NewProxyEngine(defaultUpstream)
 	if err != nil {
 		log.Fatalf("[FATAL] Failed to initialize proxy engine: %v", err)
 	}
 
 	// 5. Build Unified Router
 	mux := http.NewServeMux()
+
+	// Health Check for Cloud Orchestrators (Render, Railway, Kubernetes)
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":    "HEALTHY",
+			"service":   "aegis-edge-gateway",
+			"timestamp": time.Now().UTC(),
+		})
+	})
 
 	// WebSocket Telemetry Stream
 	mux.HandleFunc("/ws/telemetry", telemetry.HandleWebSocket)
@@ -62,16 +76,21 @@ func main() {
 	// Wrap with CORS & Logging
 	rootHandler := corsMiddleware(mux)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":" + port,
 		Handler:      rootHandler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {
-		log.Println("[AEGIS] Proxy & Control Plane listening on http://0.0.0.0:8080")
-		log.Println("[AEGIS] WebSocket Telemetry available at ws://0.0.0.0:8080/ws/telemetry")
+		log.Printf("[AEGIS] Proxy & Control Plane listening on http://0.0.0.0:%s", port)
+		log.Printf("[AEGIS] WebSocket Telemetry available at ws://0.0.0.0:%s/ws/telemetry", port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("[FATAL] Gateway server terminated: %v", err)
 		}

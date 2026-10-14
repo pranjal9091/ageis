@@ -1,8 +1,4 @@
-"""
-Aegis Threat Intelligence HTTP Service
-Exposes deep packet entropy analysis (Shannon Entropy) and payload inspection.
-"""
-
+import os
 from flask import Flask, request, jsonify
 from analyzer import ThreatAnalyzer
 
@@ -21,8 +17,7 @@ def health():
     return jsonify({
         "service": "Aegis Threat Intelligence Engine",
         "engine": "Shannon-Entropy & Heuristic Scorer v1.2",
-        "status": "ONLINE",
-        "port": 5050
+        "status": "ONLINE"
     })
 
 @app.route("/api/analyze", methods=["POST", "OPTIONS"])
@@ -40,6 +35,8 @@ def analyze_payload():
     return jsonify(result)
 
 if __name__ == "__main__":
-    print("[AEGIS-INTEL] Starting Threat Intelligence Service on http://0.0.0.0:5050")
-    app.run(host="0.0.0.0", port=5050, debug=False)
+    port = int(os.environ.get("PORT", 5050))
+    print(f"[AEGIS-INTEL] Starting Threat Intelligence Service on http://0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
+
 

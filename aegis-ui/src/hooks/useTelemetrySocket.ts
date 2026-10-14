@@ -21,7 +21,9 @@ const ZERO_METRICS: MetricsSnapshot = {
   timestamp: Date.now(),
 };
 
-export function useTelemetrySocket(wsUrl = 'ws://127.0.0.1:8080/ws/telemetry') {
+import { WS_BASE_URL } from '../config';
+
+export function useTelemetrySocket(wsUrl = WS_BASE_URL) {
   const [connected, setConnected] = useState(false);
   const [events, setEvents] = useState<SecurityEvent[]>([]);
   const [metrics, setMetrics] = useState<MetricsSnapshot>(ZERO_METRICS);

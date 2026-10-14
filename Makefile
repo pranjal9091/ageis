@@ -26,6 +26,13 @@ test:
 	@echo "Testing Go Proxy compilation..."
 	cd aegis-proxy && go vet ./...
 
+docker-up:
+	docker-compose up -d --build
+
+docker-down:
+	docker-compose down
+
 clean:
 	rm -f aegis-proxy/aegis-bin
 	rm -rf aegis-ui/dist
+

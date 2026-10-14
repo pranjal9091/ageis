@@ -1,0 +1,32 @@
+services:
+  aegis-proxy:
+    build:
+      context: ./aegis-proxy
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DEFAULT_UPSTREAM=https://httpbin.org
+    restart: unless-stopped
+
+  aegis-intel:
+    build:
+      context: ./aegis-intel
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+    restart: unless-stopped
+
+  aegis-ui:
+    build:
+      context: ./aegis-ui
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - aegis-proxy
+      - aegis-intel
+    restart: unless-stopped

@@ -10,6 +10,8 @@ import { TopologyGraph } from './components/TopologyGraph';
 import { ThreatForensicsModal } from './components/ThreatForensicsModal';
 import type { SecurityEvent } from './types/telemetry';
 
+import { PROXY_BASE_URL } from './config';
+
 export function App() {
   const [activeTab, setActiveTab] = useState('observability');
   const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
@@ -22,7 +24,7 @@ export function App() {
   // Fetch current proxy default upstream
   const fetchUpstream = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8080/api/control/upstream');
+      const res = await fetch(`${PROXY_BASE_URL}/api/control/upstream`);
       if (res.ok) {
         const data = await res.json();
         if (data.currentUpstream) {
@@ -40,7 +42,7 @@ export function App() {
 
   const handleSetUpstream = async (newTarget: string) => {
     try {
-      const res = await fetch('http://127.0.0.1:8080/api/control/upstream', {
+      const res = await fetch(`${PROXY_BASE_URL}/api/control/upstream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target: newTarget }),
@@ -56,7 +58,7 @@ export function App() {
   const handleResetTelemetry = async () => {
     setResetLoading(true);
     try {
-      await fetch('http://127.0.0.1:8080/api/control/reset', { method: 'POST' });
+      await fetch(`${PROXY_BASE_URL}/api/control/reset`, { method: 'POST' });
     } catch {
       // Ignore
     } finally {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Cpu, Search, AlertCircle, ShieldAlert, CheckCircle, HelpCircle } from 'lucide-react';
 import type { EntropyAnalysisResult } from '../types/telemetry';
+import { INTEL_BASE_URL } from '../config';
 
 export const ThreatIntelView: React.FC = () => {
   const [testPayload, setTestPayload] = useState(
@@ -35,7 +36,7 @@ export const ThreatIntelView: React.FC = () => {
   const handleRunAnalysis = async () => {
     setAnalyzing(true);
     try {
-      const res = await fetch('http://127.0.0.1:5050/api/analyze', {
+      const res = await fetch(`${INTEL_BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload: testPayload, path: '/api/v1/inspected' }),

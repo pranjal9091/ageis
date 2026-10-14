@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Send, Globe, ShieldAlert, CheckCircle2, AlertOctagon, Terminal, Link2, Settings } from 'lucide-react';
+import { PROXY_BASE_URL } from '../config';
 
 interface RequestSandboxProps {
   currentUpstream: string;
@@ -128,8 +129,7 @@ export const RequestSandbox: React.FC<RequestSandboxProps> = ({ currentUpstream,
         headers['Authorization'] = customToken.startsWith('Bearer ') ? customToken : `Bearer ${customToken}`;
       }
 
-      const host = window.location.hostname || 'localhost';
-      const proxyUrl = `http://${host}:8080${path.startsWith('/') ? path : '/' + path}`;
+      const proxyUrl = `${PROXY_BASE_URL}${path.startsWith('/') ? path : '/' + path}`;
       const res = await fetch(proxyUrl, {
         method,
         headers,

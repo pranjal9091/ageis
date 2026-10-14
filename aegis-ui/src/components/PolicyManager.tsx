@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { PolicyRule } from '../types/telemetry';
 import { Lock, Plus, ToggleLeft, ToggleRight, Shield, RefreshCw } from 'lucide-react';
+import { PROXY_BASE_URL } from '../config';
 
 export const PolicyManager: React.FC = () => {
   const [policies, setPolicies] = useState<PolicyRule[]>([]);
@@ -13,7 +14,7 @@ export const PolicyManager: React.FC = () => {
     pathPrefix: '/api/v1/custom',
     methods: ['*'],
     requiredRoles: ['super_admin'],
-    minDeviceTrust: 75,
+    minDeviceTrust: 70,
     rateLimitRps: 20,
     enforceMfa: false,
     enabled: true,
@@ -23,7 +24,7 @@ export const PolicyManager: React.FC = () => {
   const fetchPolicies = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/control/policies');
+      const res = await fetch(`${PROXY_BASE_URL}/api/control/policies`);
       if (res.ok) {
         const data = await res.json();
         setPolicies(data);
@@ -42,7 +43,7 @@ export const PolicyManager: React.FC = () => {
   const handleTogglePolicy = async (policy: PolicyRule) => {
     const updated = { ...policy, enabled: !policy.enabled };
     try {
-      const res = await fetch('http://127.0.0.1:8080/api/control/policies', {
+      const res = await fetch(`${PROXY_BASE_URL}/api/control/policies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
@@ -73,7 +74,7 @@ export const PolicyManager: React.FC = () => {
         description: newRule.description || 'Configured via Zero-Trust Control Plane',
       };
 
-      const res = await fetch('http://127.0.0.1:8080/api/control/policies', {
+      const res = await fetch(`${PROXY_BASE_URL}/api/control/policies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ruleToSave),
