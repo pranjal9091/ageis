@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: aegis-proxy
+    name: ageis
     env: docker
-    dockerfilePath: ./aegis-proxy/Dockerfile
+    dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /healthz
     envVars:
@@ -10,24 +10,3 @@ services:
         value: 8080
       - key: DEFAULT_UPSTREAM
         value: https://httpbin.org
-
-  - type: web
-    name: aegis-intel
-    env: docker
-    dockerfilePath: ./aegis-intel/Dockerfile
-    plan: free
-    healthCheckPath: /health
-    envVars:
-      - key: PORT
-        value: 5050
-
-  - type: web
-    name: aegis-dashboard
-    env: static
-    buildCommand: cd aegis-ui && npm install && npm run build
-    staticPublishPath: ./aegis-ui/dist
-    plan: free
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
