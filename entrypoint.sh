@@ -8,8 +8,18 @@ echo "====================================================="
 echo "  AEGIS: Booting Cloud Production Gateway on Port $PORT"
 echo "====================================================="
 
-# 1. Substitute $PORT into Nginx configuration
-envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+# 1. Ensure required runtime directories exist
+mkdir -p /run /var/log/nginx /etc/nginx/conf.d /etc/nginx/http.d /etc/nginx/templates
+
+# 2. Substitute $PORT into Nginx configuration (full root nginx.conf)
+TEMPLATE="/etc/nginx/nginx.conf.template"
+if [ ! -f "$TEMPLATE" ]; then
+    TEMPLATE="/etc/nginx/templates/default.conf.template"
+fi
+envsubst '${PORT}' < "$TEMPLATE" > /etc/nginx/nginx.conf
+
+# 3. Validate Nginx configuration syntax
+nginx -t
 
 # 2. Start Python Threat Intelligence Engine on 127.0.0.1:5050
 echo "[1/3] Starting Python Threat Intel Engine (:5050)..."

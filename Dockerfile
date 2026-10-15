@@ -35,11 +35,14 @@ COPY aegis-intel/ ./aegis-intel/
 # 2. Setup Go Proxy Core
 COPY --from=proxy-builder /app/aegis-proxy/aegis-gateway ./aegis-proxy/
 COPY aegis-proxy/config ./aegis-proxy/config
+RUN chmod +x ./aegis-proxy/aegis-gateway
 
 # 3. Setup React Dashboard static distribution in Nginx
 COPY --from=ui-builder /app/aegis-ui/dist /usr/share/nginx/html
 
 # 4. Copy Nginx Configuration Template & Entrypoint
+RUN mkdir -p /run /var/log/nginx /etc/nginx/conf.d /etc/nginx/http.d /etc/nginx/templates
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

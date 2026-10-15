@@ -1,97 +1,116 @@
-map $http_upgrade $connection_upgrade {
-    default upgrade;
-    '' close;
+worker_processes auto;
+pid /run/nginx.pid;
+error_log /var/log/nginx/error.log warn;
+
+events {
+    worker_connections 1024;
 }
 
-server {
-    listen ${PORT};
-    server_name _;
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
 
-    root /usr/share/nginx/html;
-    index index.html;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
 
-    # Health check endpoint for Render / Cloud Orchestrators
-    location = /healthz {
-        proxy_pass http://127.0.0.1:8082/healthz;
-        proxy_set_header Host $host;
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
     }
 
-    # Real-Time WebSocket Telemetry Stream
-    location /ws/telemetry {
-        proxy_pass http://127.0.0.1:8082/ws/telemetry;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 86400s;
-    }
+    server {
+        listen ${PORT};
+        server_name _;
 
-    # Go Control Plane REST APIs
-    location /api/control/ {
-        proxy_pass http://127.0.0.1:8082/api/control/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
+        root /usr/share/nginx/html;
+        index index.html;
 
-    # Python Threat Intelligence Engine API
-    location /api/analyze {
-        proxy_pass http://127.0.0.1:5050/api/analyze;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Internal Corporate VPC Test Endpoints
-    location /api/v1/ {
-        proxy_pass http://127.0.0.1:8082;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Dedicated Proxy Endpoint Route
-    location /proxy/ {
-        rewrite ^/proxy/(.*) /$1 break;
-        proxy_pass http://127.0.0.1:8082;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Static Assets with Cache Control
-    location /assets/ {
-        try_files $uri =404;
-        expires 1y;
-        add_header Cache-Control "public, max-age=31536000, immutable";
-    }
-
-    location = /favicon.svg {
-        try_files $uri =404;
-    }
-
-    location = /icons.svg {
-        try_files $uri =404;
-    }
-
-    # SPA Root & Dynamic In-Flight Probe Routing
-    location / {
-        # Route Sandbox probe requests with Aegis headers to Go proxy
-        if ($http_x_aegis_upstream != "") {
-            proxy_pass http://127.0.0.1:8082;
-            break;
+        # Health check endpoint for Render / Cloud Orchestrators
+        location = /healthz {
+            proxy_pass http://127.0.0.1:8082/healthz;
+            proxy_set_header Host $host;
         }
-        if ($http_x_user_id != "") {
-            proxy_pass http://127.0.0.1:8082;
-            break;
+
+        # Real-Time WebSocket Telemetry Stream
+        location /ws/telemetry {
+            proxy_pass http://127.0.0.1:8082/ws/telemetry;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_read_timeout 86400s;
+            proxy_send_timeout 86400s;
         }
-        if ($request_method != GET) {
-            proxy_pass http://127.0.0.1:8082;
-            break;
+
+        # Go Control Plane REST APIs
+        location /api/control/ {
+            proxy_pass http://127.0.0.1:8082/api/control/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
-        try_files $uri $uri/ /index.html;
+
+        # Python Threat Intelligence Engine API
+        location /api/analyze {
+            proxy_pass http://127.0.0.1:5050/api/analyze;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # Internal Corporate VPC Test Endpoints
+        location /api/v1/ {
+            proxy_pass http://127.0.0.1:8082;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # Dedicated Proxy Endpoint Route
+        location /proxy/ {
+            rewrite ^/proxy/(.*) /$1 break;
+            proxy_pass http://127.0.0.1:8082;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # Static Assets with Cache Control
+        location /assets/ {
+            try_files $uri =404;
+            expires 1y;
+            add_header Cache-Control "public, max-age=31536000, immutable";
+        }
+
+        location = /favicon.svg {
+            try_files $uri =404;
+        }
+
+        location = /icons.svg {
+            try_files $uri =404;
+        }
+
+        # SPA Root & Dynamic In-Flight Probe Routing
+        location / {
+            # Route Sandbox probe requests with Aegis headers to Go proxy
+            if ($http_x_aegis_upstream != "") {
+                proxy_pass http://127.0.0.1:8082;
+                break;
+            }
+            if ($http_x_user_id != "") {
+                proxy_pass http://127.0.0.1:8082;
+                break;
+            }
+            if ($request_method != GET) {
+                proxy_pass http://127.0.0.1:8082;
+                break;
+            }
+            try_files $uri $uri/ /index.html;
+        }
     }
 }
